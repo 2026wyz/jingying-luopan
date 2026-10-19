@@ -3,6 +3,8 @@
 一个纯静态网站：餐饮经营顾问的品牌首页 + 单店保本点速算器。
 无框架、无外部依赖、无网络请求，可直接部署到 GitHub Pages。
 
+线上地址：<https://2026wyz.github.io/jingying-luopan/>
+
 ## 页面
 
 | 文件 | 作用 |
@@ -39,7 +41,14 @@
 
 ## 部署
 
-推送到 GitHub 仓库，在 Settings → Pages 中选择 `Deploy from a branch` → `main` → `/ (root)`。
+站点通过 GitHub Pages 发布，发布分支为 `gh-pages`（推送后自动开通）。
+
+本地更新后，同时推送两个分支：
+
+```bash
+git push origin main
+git push origin main:gh-pages
+```
 
 ## 说明
 
