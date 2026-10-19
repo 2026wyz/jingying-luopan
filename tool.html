@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>保本点速算器 · 经营罗盘</title>
+<meta name="description" content="输入固定成本、客单价、食材成本率等六项数据，算出单店月保本营业额、每日保本客数与三档目标。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="tool-page">
+<a class="skip-link" href="#main">跳到正文</a>
+
+<header class="site-header">
+  <a class="brand" href="index.html" aria-label="经营罗盘 首页">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="16" cy="16" r="1.8" fill="currentColor"/>
+      <path d="M16 6.5 19 16l-3 9.5L13 16Z" fill="currentColor" opacity=".92"/>
+    </svg>
+    <span class="brand-text">
+      <span class="brand-name">经营罗盘</span>
+      <span class="brand-sub">JINGYING LUOPAN</span>
+    </span>
+  </a>
+  <nav class="site-nav" aria-label="主导航">
+    <a href="index.html#services">服务</a>
+    <a href="index.html#method">方法</a>
+    <a href="index.html#about">关于</a>
+    <a class="nav-cta is-current" href="tool.html" aria-current="page">打开速算器 <span aria-hidden="true">→</span></a>
+  </nav>
+</header>
+
+<main id="main" class="tool-main">
+
+  <section class="tool-intro">
+    <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>TOOL 01 / 单店保本点</p>
+    <h1>保本点速算器</h1>
+    <p class="lede">输入六个数，算清一个月要卖多少才不亏、每天要接多少客，以及离你的目标利润还差多远。</p>
+    <p class="privacy"><span class="privacy-dot" aria-hidden="true"></span>所有计算在浏览器本地完成，不上传、不保存到服务器。</p>
+  </section>
+
+  <div class="tool-grid">
+
+    <form class="panel form-panel" id="calc-form" novalidate>
+      <div class="panel-head">
+        <h2>你的数字</h2>
+        <div class="form-actions">
+          <button type="button" class="text-btn" id="load-sample">载入示例</button>
+          <button type="button" class="text-btn" id="reset-form">重置</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fixed">月固定成本 <span class="unit">元</span></label>
+        <input id="fixed" name="fixed" type="number" min="0" step="1000" value="120000" inputmode="decimal" autocomplete="off">
+        <p class="hint">房租、固定人工、固定能耗、折旧等不随营业额变化的支出。</p>
+      </div>
+
+      <div class="field">
+        <label for="price">平均客单价 <span class="unit">元</span></label>
+        <input id="price" name="price" type="number" min="0.01" step="0.5" value="45" inputmode="decimal" autocomplete="off">
+        <p class="hint">用月营业额 ÷ 月客单数，不要拍脑袋取整数。</p>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="foodRate">食材成本率 <span class="unit">%</span></label>
+          <input id="foodRate" name="foodRate" type="number" min="0" max="100" step="0.5" value="38" inputmode="decimal" autocomplete="off">
+          <p class="hint">食材成本 ÷ 营业额。</p>
+        </div>
+        <div class="field">
+          <label for="otherRate">其他变动成本率 <span class="unit">%</span></label>
+          <input id="otherRate" name="otherRate" type="number" min="0" max="100" step="0.5" value="8" inputmode="decimal" autocomplete="off">
+          <p class="hint">包装、平台佣金、变动能耗等。</p>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="targetProfit">目标利润 <span class="unit">元 / 月</span></label>
+          <input id="targetProfit" name="targetProfit" type="number" min="0" step="1000" value="20000" inputmode="decimal" autocomplete="off">
+          <p class="hint">扣掉所有成本后，你希望留下的钱。</p>
+        </div>
+        <div class="field">
+          <label for="days">月营业天数 <span class="unit">天</span></label>
+          <input id="days" name="days" type="number" min="1" max="31" step="1" value="30" inputmode="numeric" autocomplete="off">
+          <p class="hint">按实际营业天数算，不按 30 天一刀切。</p>
+        </div>
+      </div>
+
+      <p class="form-error" id="form-error" role="alert" hidden></p>
+
+      <button type="button" class="btn btn-primary btn-block" id="print-btn">打印这张小票</button>
+      <p class="form-foot">小票会按 A4 纸排版，可直接打印或存为 PDF。</p>
+    </form>
+
+    <aside class="result-side">
+      <div class="receipt receipt-live" id="receipt">
+        <!-- 由 app.js 渲染 -->
+      </div>
+      <p class="sr-only" id="live-status" role="status" aria-live="polite"></p>
+      <p class="result-caption">阈值：边际贡献率 ≥50% 可开 · 40–50% 算细 · 低于 40% 慎开（经验区间，仅供参考）。</p>
+    </aside>
+
+  </div>
+
+  <section class="analysis">
+
+    <div class="panel chart-panel">
+      <div class="panel-head">
+        <h2>营业额与利润</h2>
+        <span class="panel-note" id="chart-note">红点为保本点</span>
+      </div>
+      <div class="chart-wrap">
+        <svg id="profit-chart" viewBox="0 0 720 320" role="img" aria-label="营业额与利润关系图"></svg>
+      </div>
+      <p class="chart-caption" id="chart-caption">横轴为月营业额，纵轴为月利润。保本点以右，卖得越多，利润涨得越快。</p>
+    </div>
+
+    <div class="panel sensitivity-panel">
+      <div class="panel-head">
+        <h2>如果食材成本变了</h2>
+        <span class="panel-note">其他条件不变</span>
+      </div>
+      <div class="table-wrap">
+        <table id="sensitivity-table">
+          <thead>
+            <tr>
+              <th scope="col">食材成本率</th>
+              <th scope="col">边际贡献率</th>
+              <th scope="col">保本营业额</th>
+              <th scope="col">较基准</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="table-note">成本率每变动 1 个点，保本线就会跟着移动。先盯住最敏感的那一项。</p>
+    </div>
+
+  </section>
+
+  <section class="targets" aria-labelledby="targets-title">
+    <div class="section-head">
+      <p class="eyebrow">TARGETS</p>
+      <h2 id="targets-title">三档目标</h2>
+    </div>
+    <div class="target-grid">
+      <article class="target-card">
+        <p class="target-k">01 / 保本</p>
+        <p class="target-v" id="target-be">—</p>
+        <p class="target-meta" id="target-be-meta">每月不亏的营业额</p>
+      </article>
+      <article class="target-card is-accent">
+        <p class="target-k">02 / 满意利润</p>
+        <p class="target-v" id="target-profit">—</p>
+        <p class="target-meta" id="target-profit-meta">固定成本 + 目标利润</p>
+      </article>
+      <article class="target-card">
+        <p class="target-k">03 / 挑战</p>
+        <p class="target-v" id="target-stretch">—</p>
+        <p class="target-meta" id="target-stretch-meta">利润目标再提高 50%</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="assumptions" aria-labelledby="assumptions-title">
+    <div class="section-head">
+      <p class="eyebrow">ASSUMPTIONS</p>
+      <h2 id="assumptions-title">口径说明</h2>
+    </div>
+    <ul class="assumption-list">
+      <li><strong>边际贡献率</strong> = 1 − 食材成本率 − 其他变动成本率。它表示每卖 100 元，能留下多少钱去覆盖固定成本。</li>
+      <li><strong>保本营业额</strong> = 月固定成本 ÷ 边际贡献率。</li>
+      <li><strong>客数</strong>按平均客单价折算并向上取整，实际会受客单结构影响。</li>
+      <li>本工具未考虑税费、折旧口径、加盟分成、一次性投入等差异，测算结果仅作经营参考。</li>
+      <li>数据只留在当前浏览器；清理浏览器缓存后会恢复为示例值。</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="brand-name">经营罗盘</span>
+      <span class="footer-sub">餐饮经营顾问 · 单店模型</span>
+    </div>
+    <p class="footer-note">本站为 AI 实操课程作业演示站，计算结果为示例口径，不构成经营建议。</p>
+    <p class="footer-copy">© 2026 经营罗盘</p>
+  </div>
+</footer>
+
+<script src="assets/app.js" defer></script>
+</body>
+</html>
